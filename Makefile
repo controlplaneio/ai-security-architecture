@@ -3,6 +3,7 @@ KIND_VERSION ?= 0.27.0
 HELM_VERSION ?= 3.17.0
 KUBECTL_VERSION ?= 1.32.2
 CILIUM_VERSION ?= v1.16.7
+CILIUM_CLI_VERSION ?= v0.18.2
 
 CLUSTER_NAME := $(NAME)
 
@@ -37,7 +38,7 @@ cluster-down: kind ## Delete the kind cluster
 ##@ Infra
 
 .PHONY: cilium-install
-cilium-install: helm
+cilium-install: helm cilium
 	$(HELM) repo add cilium https://helm.cilium.io/
 	$(HELM) repo update
 	docker pull quay.io/cilium/cilium:$(CILIUM_VERSION)
@@ -47,7 +48,7 @@ cilium-install: helm
    --set image.pullPolicy=IfNotPresent \
    --set ipam.mode=kubernetes \
 	 --set envoy.enabled=false
-	cilium status --wait
+	$(CILIUM) status --wait
 
 .PHONY: chatbot-build
 chatbot-build:
@@ -106,6 +107,7 @@ test:
 KIND = $(shell pwd)/$(BIN_DIR)/kind
 KUBECTL = $(shell pwd)/$(BIN_DIR)/kubectl
 HELM = $(shell pwd)/$(BIN_DIR)/helm
+CILIUM = $(shell pwd)/$(BIN_DIR)/cilium
 
 .PHONY: helm
 helm: ## Download helm
@@ -133,6 +135,17 @@ ifeq (,$(wildcard $(KUBECTL)))
 	@{ \
 		curl -sLo $(KUBECTL) https://dl.k8s.io/release/v$(KUBECTL_VERSION)/bin/$(OS)/$(ARCH)/kubectl ; \
 		chmod +x $(KUBECTL); \
+	}
+endif
+
+.PHONY: cilium
+cilium: ##Download Cilium CLI
+ifeq (,$(wildcard $(CILIUM)))
+	@{ \
+		curl -L --remote-name-all https://github.com/cilium/cilium-cli/releases/download/${CILIUM_CLI_VERSION}/cilium-${OS}-${ARCH}.tar.gz; \
+		tar -C $(BIN_DIR) -xzvf cilium-${OS}-${ARCH}.tar.gz;\
+		chmod +x $(CILIUM); \
+		rm cilium-$(OS)-$(ARCH).tar.gz; \
 	}
 endif
 

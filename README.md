@@ -15,80 +15,6 @@ An [OpenAI](https://platform.openai.com/) account and API Key are needed, with a
 
 The following diagram shows the demo architecture.
 
-TODO: replace with excalidraw diagram or similar as maintaining node order in mermaid is difficult!
-
-```mermaid
-graph LR
-    user[User]-->|prompt| prompt_firewall
-    prompt_firewall-->|allowed prompt| app_chatbot
-    app_chatbot-->|response| response_firewall
-    response_firewall-->|Allowed response| user
-    app_chatbot-->|RAG| datastore_firewall
-    datastore_firewall-->|Allowed traffic| datastore
-    datastore[Data to enhance context]
-    app_chatbot-->|Prompt & context| model_firewall
-    model_firewall-->|Allowed traffic| model_endpoint
-    model_endpoint[AI model endpoint]
-    subgraph fw-prompt-ns
-        prompt_firewall[Prompt Firewall]
-    end
-    subgraph app-chatbot-ns
-        app_chatbot[AI-enabled application]
-    end
-    subgraph fw-model-ns
-        model_firewall[Model Firewall]
-    end
-    subgraph fw-datastore-ns
-        datastore_firewall[Datastore firewall]
-    end
-    subgraph fw-response-ns
-        direction RL
-        response_firewall[Response firewall]
-    end
-```
-
-## Demo
-
-In this demo, placeholder Envoy proxies have been introduced for the prompt firewall and model firewall, which log requests and responses. The role of the AI-enabled application is played by [aichat](https://github.com/sigoden/aichat), which forwards on requests to OpenAI via the model firewall.
-
-Security contexts for the proxies and `aichat` have been hardened, and the `fw-prompt`, `app-chatbot` and `fw-model` namespaces have Pod Security Standards enforced at the Restricted level. Cilium is used as the CNI, and network policies have been set up so that inbound traffic to `aichat` must come from the `fw-prompt` namespace, and egress traffic must go to the `fw-model` namespace.
-
-Set the `OPENAI_API_KEY` environment variable:
-
-```bash
-export OPENAI_API_KEY=<Paste Your API Key Here>
-```
-
-Spin up the infrastructure:
-
-```bash
-make all
-```
-
-Set up port forwarding to the prompt-firewall:
-
-```bash
-make port-forward
-```
-
-Send an example request:
-
-```bash
-make example-prompt
-```
-
-Run the example Bats test:
-
-```bash
-make test
-```
-
-## Teardown
-
-```bash
-make down
-```
-
 ```mermaid
 graph LR;
  client([client])-. port forward .->fw-prompt-svc[Service: fw-prompt];
@@ -147,5 +73,46 @@ graph LR;
   class app-chatbot-confluence-svc,app-chatbot-confluence-deploy,app-chatbot-vectordb-svc,app-chatbot-vectordb-deploy k8s-data;
  class client plain;
  class cluster cluster;
+```
 
+## Demo
+
+In this demo, placeholder Envoy proxies and an echo server (which takes the place of a prompt firewall via Envoy [external authorization](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/ext_authz_filter)) have been introduced for the prompt firewall and model firewall, which log requests and responses. The role of the AI-enabled application is played by [aichat](https://github.com/sigoden/aichat), which forwards on requests to OpenAI via the model firewall.
+
+Security contexts for the proxies and `aichat` have been hardened, and the `fw-prompt`, `app-chatbot` and `fw-model` namespaces have Pod Security Standards enforced at the Restricted level. Cilium is used as the CNI, and network policies have been set up so that inbound traffic to `aichat` must come from the `fw-prompt` namespace, and egress traffic must go to the `fw-model` namespace.
+
+Set the `OPENAI_API_KEY` environment variable:
+
+```bash
+export OPENAI_API_KEY=<Paste Your API Key Here>
+```
+
+Spin up the infrastructure:
+
+```bash
+make all
+```
+
+Set up port forwarding to the prompt-firewall:
+
+```bash
+make port-forward
+```
+
+Send an example request:
+
+```bash
+make example-prompt
+```
+
+Run the example Bats test:
+
+```bash
+make test
+```
+
+## Teardown
+
+```bash
+make down
 ```
