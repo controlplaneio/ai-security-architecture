@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-chatbot
+  namespace: app-chatbot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-chatbot
+  template:
+    metadata:
+      labels:
+        app: app-chatbot
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - image: proxy-chatbot:latest
+          imagePullPolicy: IfNotPresent
+          name: app-chatbot
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: app-chatbot-config-volume
+              mountPath: /config/config.yaml
+              subPath: aichat-config.yaml
+          env:
+            - name: PROXY_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-chatbot-secret
+                  key: PROXY_API_KEY
+            - name: AICHAT_CONFIG_DIR
+              value: "/config"
+          securityContext:
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+              add: ["NET_BIND_SERVICE"]
+            seccompProfile:
+              type: RuntimeDefault
+            readOnlyRootFilesystem: true
+      volumes:
+        - name: app-chatbot-config-volume
+          configMap:
+            name: aichat-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-chatbot
+  namespace: app-chatbot
+spec:
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+  selector:
+    app: app-chatbot
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aichat-config
+  namespace: app-chatbot
+data:
+  aichat-config.yaml: |
+    model: proxy:gpt-4o
+    clients:
+      - type: openai-compatible
+        name: proxy
+        api_base: http://fw-model.fw-model.svc.cluster.local/v1
+        chat_endpoint: /chat/completions
+        models:
+          - name: gpt-4o

@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echoserver
+  namespace: ctrl-prompt
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: echoserver
+  template:
+    metadata:
+      labels:
+        app: echoserver
+    spec:
+      containers:
+        - name: echoserver
+          image: ealen/echo-server:0.9.2
+          ports:
+            - containerPort: 80
+          env:
+            - name: PORT
+              value: "80"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: echoserver
+  namespace: ctrl-prompt
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    app: echoserver

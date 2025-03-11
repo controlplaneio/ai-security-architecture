@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-guard
+  namespace: ctrl-prompt
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: llm-guard
+  template:
+    metadata:
+      labels:
+        app: llm-guard
+    spec:
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+        fsGroup: 0
+      containers:
+        - name: llm-guard
+          image: laiyer/llm-guard-api:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: LOG_LEVEL
+              value: "DEBUG"
+            - name: SCAN_FAIL_FAST
+              value: "true"
+          volumeMounts:
+            - mountPath: /home/user/.cache
+              name: llm-guard
+              readOnly: false
+
+        - name: reverse-proxy
+          image: proxy-llm-guard:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+              - name: TARGET_URL
+                value: http://localhost:8000/scan/prompt
+
+      volumes:
+        - name: llm-guard
+          persistentVolumeClaim:
+            claimName: llm-guard
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-guard
+  namespace: ctrl-prompt
+spec:
+  ports:
+    - port: 80
+      targetPort: 8080
+  selector:
+    app: llm-guard
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: llm-guard
+  namespace: ctrl-prompt
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: manual

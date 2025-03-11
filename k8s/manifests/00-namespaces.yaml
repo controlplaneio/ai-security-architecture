@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fw-prompt
+  labels:
+    ns: fw-prompt
+    # pod-security.kubernetes.io/enforce: restricted
+    # pod-security.kubernetes.io/enforce-version: latest
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: app-chatbot
+  labels:
+    ns: app-chatbot
+    # pod-security.kubernetes.io/enforce: restricted
+    # pod-security.kubernetes.io/enforce-version: latest
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: data-mysql
+  labels:
+    ns: data-mysql
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fw-model
+  labels:
+    ns: fw-model
+    # pod-security.kubernetes.io/enforce: restricted
+    # pod-security.kubernetes.io/enforce-version: latest
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fw-response
+  labels:
+    ns: fw-response
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fw-datastore
+  labels:
+    ns: fw-datastore
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ctrl-prompt
+  labels:
+    ns: ctrl-prompt
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: latest
