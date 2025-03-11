@@ -19,8 +19,7 @@ all: \
 	setup cluster-up \
 	cilium-install controls-install \
 	chatbot-build proxy-llm-guard-build \
-	infra-up \
-	netpols-apply
+	infra-up
 
 .PHONY: down
 down: stop-port-forwarding cluster-down

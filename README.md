@@ -104,6 +104,12 @@ x_subfolder='', onnx_filename='model.onnx', kwargs={}, pipeline_kwargs={'batch_s
 Z"}
 ```
 
+After the models are ready:
+
+```bash
+make netpol-apply
+```
+
 Set up port forwarding to the prompt-firewall:
 
 ```bash
