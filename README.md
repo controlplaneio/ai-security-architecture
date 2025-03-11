@@ -75,6 +75,10 @@ graph LR;
  class cluster cluster;
 ```
 
+> [!NOTE]
+> This project is built to demo some of the components of the [FINOS AI Governance Framework](https://github.com/finos/ai-readiness).
+
+
 ## Demo
 
 In this demo, placeholder Envoy proxies have been introduced for the prompt firewall and model firewall, which log requests and responses. The role of the AI-enabled application is played by [aichat](https://github.com/sigoden/aichat), which forwards on requests to OpenAI via the model firewall.
