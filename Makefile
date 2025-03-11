@@ -153,6 +153,7 @@ ifeq (,$(shell which kind 2> /dev/null))
 else
 KIND = $(shell which kind)
 endif
+endif
 
 .PHONY: kubectl
 kubectl: ## Download kubectl
