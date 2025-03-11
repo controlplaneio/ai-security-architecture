@@ -4,8 +4,8 @@ metadata:
   name: fw-prompt
   labels:
     ns: fw-prompt
-    pod-security.kubernetes.io/enforce: restricted
-    pod-security.kubernetes.io/enforce-version: latest
+    # pod-security.kubernetes.io/enforce: restricted
+    # pod-security.kubernetes.io/enforce-version: latest
 ---
 apiVersion: v1
 kind: Namespace
@@ -13,8 +13,8 @@ metadata:
   name: app-chatbot
   labels:
     ns: app-chatbot
-    pod-security.kubernetes.io/enforce: restricted
-    pod-security.kubernetes.io/enforce-version: latest
+    # pod-security.kubernetes.io/enforce: restricted
+    # pod-security.kubernetes.io/enforce-version: latest
 ---
 apiVersion: v1
 kind: Namespace
@@ -29,8 +29,8 @@ metadata:
   name: fw-model
   labels:
     ns: fw-model
-    pod-security.kubernetes.io/enforce: restricted
-    pod-security.kubernetes.io/enforce-version: latest
+    # pod-security.kubernetes.io/enforce: restricted
+    # pod-security.kubernetes.io/enforce-version: latest
 ---
 apiVersion: v1
 kind: Namespace

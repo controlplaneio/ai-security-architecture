@@ -25,10 +25,10 @@ spec:
       labels:
         app: envoy-proxy
     spec:
-      securityContext:
-        runAsNonRoot: true
-        seccompProfile:
-          type: RuntimeDefault
+#      securityContext:
+#        runAsNonRoot: true
+#        seccompProfile:
+#          type: RuntimeDefault
       containers:
         - name: envoy
           image: envoyproxy/envoy:debug-v1.30.0
@@ -39,15 +39,15 @@ spec:
               mountPath: /etc/envoy
           args:
             - "--config-path /etc/envoy/envoy.yaml"
-          securityContext:
-            runAsUser: 1001
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-              add: ["NET_BIND_SERVICE"]
-            seccompProfile:
-              type: RuntimeDefault
-            readOnlyRootFilesystem: true
+#          securityContext:
+#            runAsUser: 1001
+#            allowPrivilegeEscalation: false
+#            capabilities:
+#              drop: ["ALL"]
+#              add: ["NET_BIND_SERVICE"]
+#            seccompProfile:
+#              type: RuntimeDefault
+#            readOnlyRootFilesystem: true
       volumes:
         - name: envoy-config
           configMap:
@@ -199,15 +199,22 @@ data:
                       - name: envoy.filters.http.ext_authz
                         typed_config:
                           "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+                          with_request_body:
+                            pack_as_bytes: true
+                            max_request_bytes: 10240
                           http_service:
                             server_uri:
-                              uri: echoserver.ctrl-prompt.svc.cluster.local:80
+                              uri: llm-guard.ctrl-prompt.svc.cluster.local:80
                               cluster: service_ctrl_prompt
                               timeout: 5s
                             authorization_request:
                               headers_to_add:
-                                - key: "x-echo-code"
-                                  value: "200"
+                                - key: "Content-Type"
+                                  value: "application/json"
+
+
+                                  # - key: "x-echo-code"
+                                  #   value: "200"
 
                       - name: envoy.filters.http.router
                         typed_config:
@@ -224,7 +231,7 @@ data:
                   - endpoint:
                       address:
                         socket_address:
-                          address: echoserver.ctrl-prompt.svc.cluster.local
+                          address: llm-guard.ctrl-prompt.svc.cluster.local
                           port_value: 80
 
         - name: service_app_chatbot
@@ -240,4 +247,3 @@ data:
                         socket_address:
                           address: app-chatbot.app-chatbot.svc.cluster.local
                           port_value: 80
-

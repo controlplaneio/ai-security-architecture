@@ -15,7 +15,12 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 .EXPORT_ALL_VARIABLES:
 
 .PHONY: all
-all: setup cluster-up cilium-install chatbot-build infra-up netpols-apply
+all: \
+	setup cluster-up \
+	cilium-install controls-install \
+	chatbot-build proxy-llm-guard-build \
+	infra-up \
+	netpols-apply
 
 .PHONY: down
 down: stop-port-forwarding cluster-down
@@ -37,6 +42,11 @@ cluster-down: kind ## Delete the kind cluster
 
 ##@ Infra
 
+.PHONY: controls-install
+controls-install:
+	docker pull laiyer/llm-guard-api:latest
+	$(KIND) load docker-image laiyer/llm-guard-api:latest -n $(CLUSTER_NAME)
+
 .PHONY: cilium-install
 cilium-install: helm cilium
 	$(HELM) repo add cilium https://helm.cilium.io/
@@ -55,6 +65,12 @@ chatbot-build:
 	docker build -t proxy-chatbot:latest .
 	$(KIND) load docker-image proxy-chatbot:latest -n $(CLUSTER_NAME)
 
+.PHONY: proxy-llm-guard-build
+proxy-llm-guard-build:
+	cd container/proxy-llm-guard && \
+		docker build -t proxy-llm-guard:latest .
+	$(KIND) load docker-image proxy-llm-guard:latest -n $(CLUSTER_NAME)
+
 .PHONY: infra-up
 infra-up: kubectl
 ifndef OPENAI_API_KEY
@@ -67,10 +83,7 @@ endif
 		--from-literal=PROXY_API_KEY="$(OPENAI_API_KEY)" \
 		--namespace=app-chatbot
 
-	$(KUBECTL) apply -f k8s/manifests/01-fw-prompt.yaml
-	$(KUBECTL) apply -f k8s/manifests/02-app-chatbot.yaml
-	$(KUBECTL) apply -f k8s/manifests/03-fw-model.yaml
-	$(KUBECTL) apply -f k8s/manifests/05-ctrl-prompt.yaml
+	kubectl apply -f "k8s/manifests/*.yaml"
 
 	-while [ -z "$$($(KUBECTL) -n fw-prompt get po -l app=envoy-proxy -o jsonpath='{.items[0].metadata.generateName}')" -a -z "$$(kubectl -n app-chatbot get po -l app=app-chatbot -o jsonpath='{.items[0].metadata.generateName}')" -a -z "$$(kubectl -n fw-model get po -l app=envoy-proxy -o jsonpath='{.items[0].metadata.generateName}')" ]; do \
 		sleep 2; \
@@ -82,17 +95,24 @@ endif
 	$(KUBECTL) wait --timeout=120s --for=condition=Ready pod -n fw-model -l app=envoy-proxy
 
 .PHONY: port-forward
-port-forward: kubectl
+port-forward:
 	$(KUBECTL) -n fw-prompt port-forward svc/fw-prompt 8080:80 &
+	$(KUBECTL) -n ctrl-prompt port-forward svc/echoserver 8081:80 &
+	$(KUBECTL) -n ctrl-prompt port-forward svc/llm-guard 8082:80 &
 
 .PHONY: stop-port-forwarding
 stop-port-forwarding:
 	-lsof -ti:8080 | xargs --no-run-if-empty kill -9 || true
 	-lsof -ti:8081 | xargs --no-run-if-empty kill -9 || true
+	-lsof -ti:8082 | xargs --no-run-if-empty kill -9 || true
 
-.PHONY: example-prompt
-example-prompt:
+.PHONY: test-prompt
+test-prompt:
 	curl -v -X POST -H "Content-Type: application/json" -d '{ "model": "proxy:gpt-4o", "messages": [{"role": "user", "content": "Say this is a test!"}], "temperature": 0.7 }' localhost:8080/v1/chat/completions ; echo
+
+.PHONY: test-prompt-fail
+test-prompt-fail:
+	curl -v -X POST -H "Content-Type: application/json" -d '{ "model": "proxy:gpt-4o", "messages": [{"role": "user", "content": "I kill AIs"}], "temperature": 0.7 }' localhost:8080/v1/chat/completions ; echo
 
 .PHONY: netpols-apply
 netpols-apply:
@@ -121,12 +141,17 @@ ifeq (,$(wildcard $(HELM)))
 endif
 
 .PHONY: kind
-kind: ## Download kind
+KIND = $(shell pwd)/bin/kind
+kind: ## Download kind if required
 ifeq (,$(wildcard $(KIND)))
+ifeq (,$(shell which kind 2> /dev/null))
 	@{ \
-		curl -sLo $(KIND) https://github.com/kubernetes-sigs/kind/releases/download/v$(KIND_VERSION)/kind-$(OS)-$(ARCH) ; \
+		mkdir -p $(dir $(KIND)); \
+		curl -sSLo $(KIND) https://kind.sigs.k8s.io/dl/v$(KIND_VERSION)/kind-$(OS)-$(ARCH); \
 		chmod +x $(KIND); \
 	}
+else
+KIND = $(shell which kind)
 endif
 
 .PHONY: kubectl
@@ -155,4 +180,3 @@ help: ## parse jobs and descriptions from this Makefile
 	| grep -Ev '^help\b[[:space:]]*:' \
 	| sort \
 	| awk 'BEGIN {FS = ":.*?##"}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
-

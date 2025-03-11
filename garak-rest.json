@@ -1,0 +1,23 @@
+
+{
+  "rest.RestGenerator": {
+    "name": "openai-proxy",
+    "uri": "http://localhost:8080/v1/chat/completions",
+    "method": "post",
+    "headers": {
+    },
+    "req_template_json_object": {
+      "model": "proxy:gpt-4o",
+      "messages": [
+        {
+          "role": "user",
+          "content": "$INPUT"
+        }],
+      "format": "json",
+      "stream": false
+    },
+    "response_json": true,
+    "response_json_field": "$.choices[0].message.content",
+    "request_timeout": 30
+  }
+}

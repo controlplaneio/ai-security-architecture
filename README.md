@@ -1,4 +1,4 @@
-# AI Security Reference Architecture Demo
+# AI Reference Architecture Demo
 
 ## Prerequisites
 
@@ -14,6 +14,102 @@ An [OpenAI](https://platform.openai.com/) account and API Key are needed, with a
 ## Architecture
 
 The following diagram shows the demo architecture.
+
+```mermaid
+graph LR
+    user[User]-->|prompt| prompt_firewall
+    prompt_firewall-->|allowed prompt| app_chatbot
+    app_chatbot-->|response| response_firewall
+    response_firewall-->|Allowed response| user
+    app_chatbot-->|RAG| datastore_firewall
+    datastore_firewall-->|Allowed traffic| datastore
+    datastore[Data to enhance context]
+    app_chatbot-->|Prompt & context| model_firewall
+    model_firewall-->|Allowed traffic| model_endpoint
+    model_endpoint[AI model endpoint]
+    subgraph fw-prompt-ns
+        prompt_firewall[Prompt Firewall]
+    end
+    subgraph app-chatbot-ns
+        app_chatbot[AI-enabled application]
+    end
+    subgraph fw-model-ns
+        model_firewall[Model Firewall]
+    end
+    subgraph fw-datastore-ns
+        datastore_firewall[Datastore firewall]
+    end
+    subgraph fw-response-ns
+        direction RL
+        response_firewall[Response firewall]
+    end
+```
+
+## Demo
+
+In this demo, placeholder Envoy proxies have been introduced for the prompt firewall and model firewall, which log requests and responses. The role of the AI-enabled application is played by [aichat](https://github.com/sigoden/aichat), which forwards on requests to OpenAI via the model firewall.
+
+Security contexts for the proxies and `aichat` have been hardened, and the `fw-prompt`, `app-chatbot` and `fw-model` namespaces have Pod Security Standards enforced at the Restricted level. Cilium is used as the CNI, and network policies have been set up so that inbound traffic to `aichat` must come from the `fw-prompt` namespace, and egress traffic must go to the `fw-model` namespace.
+
+Set the `OPENAI_API_KEY` environment variable:
+
+```bash
+export OPENAI_API_KEY=<Paste Your API Key Here>
+```
+
+Spin up the infrastructure:
+
+```bash
+make all
+```
+
+Watch the logs for evidence of startup, for example llm-guard needs to pull models from Hugging Face:
+
+
+```bash
+ctrl-prompt llm-guard-7f98587787-fnw5p llm-guard {"model": "Model(path='unitary/unbiased-toxic-roberta', subfolder='', revision='36295dd80b422
+dc49f40052021430dae76241adc', onnx_path='ProtectAI/unbiased-toxic-roberta-onnx', onnx_revision='34480fa958f6657ad835c345808475755b6974a7', onn
+x_subfolder='', onnx_filename='model.onnx', kwargs={}, pipeline_kwargs={'batch_size': 1, 'device': device(type='cpu'), 'padding': 'max_length'
+, 'top_k': None, 'function_to_apply': 'sigmoid', 'return_token_type_ids': False, 'max_length': 256, 'truncation': True}, tokenizer_kwargs={})"
+, "device": "device(type='cpu')", "event": "Initialized classification ONNX model", "level": "debug", "timestamp": "2024-10-29T07:16:18.009892
+Z"}
+```
+
+
+Set up port forwarding to the prompt-firewall:
+
+```bash
+make port-forward
+```
+
+Send an example passing request:
+
+```bash
+make test-prompt
+```
+
+> [!NOTE]
+> This step should complete successfully. Monitor the logs to check for model reconcilliation activity
+
+Send an example failing request:
+
+```bash
+make test-prompt-fail
+```
+
+This step should fail with something like `{"is_valid":false,"scanners":{"BanTopics":1.0}}`
+
+This infrastructure is now ready for red-teaming!
+
+```bash
+python3 -m garak  --model_type rest -G garak-rest.json --probes dan.DanInTheWildMini
+```
+
+## Teardown
+
+```bash
+make down
+```
 
 ```mermaid
 graph LR;

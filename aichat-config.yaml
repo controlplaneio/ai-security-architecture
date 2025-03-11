@@ -1,0 +1,5 @@
+model: openai
+clients:
+- type: openai
+  # OPENAI_API_KEY
+
