@@ -82,7 +82,7 @@ endif
 		--from-literal=PROXY_API_KEY="$(OPENAI_API_KEY)" \
 		--namespace=app-chatbot
 
-	kubectl apply -f "k8s/manifests/*.yaml"
+	kubectl apply -f "k8s/manifests/0[0-5]*.yaml"
 
 	-while [ -z "$$($(KUBECTL) -n fw-prompt get po -l app=envoy-proxy -o jsonpath='{.items[0].metadata.generateName}')" -a -z "$$(kubectl -n app-chatbot get po -l app=app-chatbot -o jsonpath='{.items[0].metadata.generateName}')" -a -z "$$(kubectl -n fw-model get po -l app=envoy-proxy -o jsonpath='{.items[0].metadata.generateName}')" ]; do \
 		sleep 2; \
@@ -115,7 +115,7 @@ test-prompt-fail:
 
 .PHONY: netpols-apply
 netpols-apply:
-	kubectl apply -f k8s/manifests/04-netpols.yaml
+	kubectl apply -f k8s/manifests/07-netpols.yaml
 
 .PHONY: test
 test:
