@@ -111,7 +111,7 @@ Z"}
 After the models are ready:
 
 ```bash
-make netpol-apply
+make netpols-apply
 ```
 
 Set up port forwarding to the prompt-firewall:
