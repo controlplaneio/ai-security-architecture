@@ -109,6 +109,8 @@ make all
 
 5. Watch the logs for evidence of startup, for example llm-guard needs to pull models from Hugging Face:
 
+Depending on the first-run conditions, you may need to run `make test-prompt` until the environment is prepared.
+
 ```bash
 $ kubectl logs -n ctrl-prompt -l app=llm-guard
 {"model": "Model(path='unitary/unbiased-toxic-roberta', subfolder='', revision='36295dd80b422

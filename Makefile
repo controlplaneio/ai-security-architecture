@@ -21,7 +21,7 @@ all: \
 	infra-up
 
 .PHONY: down
-down: stop-port-forwarding cluster-down
+down: cluster-down
 
 .PHONY: setup
 setup: ## Enforce pre-requisites
@@ -61,14 +61,12 @@ cilium-install: ## Install Cilium
 
 .PHONY: chatbot-build
 chatbot-build: ## Build and load the chatbot container
-	cd container/proxy-chatbot
-	docker build -t proxy-chatbot:latest .
+	docker build -t proxy-chatbot:latest container/proxy-chatbot
 	kind load docker-image proxy-chatbot:latest -n $(CLUSTER_NAME)
 
 .PHONY: proxy-llm-guard-build
 proxy-llm-guard-build: ## Build and load the proxy-llm-guard container
-	cd container/proxy-llm-guard
-	docker build -t proxy-llm-guard:latest .
+	docker build -t proxy-llm-guard:latest container/proxy-llm-guard
 	kind load docker-image proxy-llm-guard:latest -n $(CLUSTER_NAME)
 
 .PHONY: infra-up
@@ -90,18 +88,6 @@ infra-up:
 	kubectl wait --timeout=120s --for=condition=Ready pod -n app-chatbot -l app=app-chatbot
 	kubectl wait --timeout=120s --for=condition=Ready pod -n fw-model -l app=envoy-proxy
 	kubectl wait --timeout=120s --for=condition=Ready pod -n ctrl-prompt -l app=llm-guard
-
-.PHONY: port-forward
-port-forward: 
-	kubectl -n fw-prompt port-forward svc/fw-prompt 8080:80 &
-	kubectl -n ctrl-prompt port-forward svc/echoserver 8081:80 &
-	kubectl -n ctrl-prompt port-forward svc/llm-guard 8082:80 &
-
-.PHONY: stop-port-forwarding
-stop-port-forwarding:
-	-lsof -ti:8080 | xargs --no-run-if-empty kill -9 || true
-	-lsof -ti:8081 | xargs --no-run-if-empty kill -9 || true
-	-lsof -ti:8082 | xargs --no-run-if-empty kill -9 || true
 
 .PHONY: test-prompt
 test-prompt:
