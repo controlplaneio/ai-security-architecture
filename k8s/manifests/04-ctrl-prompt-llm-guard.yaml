@@ -38,8 +38,8 @@ spec:
           ports:
             - containerPort: 8080
           env:
-              - name: TARGET_URL
-                value: http://localhost:8000/scan/prompt
+            - name: TARGET_URL
+              value: http://localhost:8000/scan/prompt
 
       volumes:
         - name: llm-guard

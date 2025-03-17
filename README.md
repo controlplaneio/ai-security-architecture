@@ -124,7 +124,7 @@ Z"}
 6. After the models are ready:
 
 ```bash
-$ make netpols-apply
+make netpols-apply
 ```
 
 7. Send an example passing request:

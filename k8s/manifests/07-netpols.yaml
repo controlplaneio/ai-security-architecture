@@ -7,29 +7,29 @@ specs:
   - endpointSelector:
       matchLabels: {}
     ingress:
-    - fromEntities:
-      - all
+      - fromEntities:
+          - all
     egress:
-    - toEndpoints:
-      - matchLabels:
-          "k8s:io.kubernetes.pod.namespace": app-chatbot
+      - toEndpoints:
+          - matchLabels:
+              "k8s:io.kubernetes.pod.namespace": app-chatbot
   - endpointSelector:
       matchLabels: {}
     egress:
-    - toEndpoints:
-      - matchLabels:
-          "k8s:io.kubernetes.pod.namespace": kube-system
-          "k8s:k8s-app": kube-dns
+      - toEndpoints:
+          - matchLabels:
+              "k8s:io.kubernetes.pod.namespace": kube-system
+              "k8s:k8s-app": kube-dns
   - endpointSelector:
       matchLabels: {}
     ingress:
-    - fromEndpoints:
-      - matchLabels:
-          "k8s:io.kubernetes.pod.namespace": ctrl-prompt
+      - fromEndpoints:
+          - matchLabels:
+              "k8s:io.kubernetes.pod.namespace": ctrl-prompt
     egress:
-    - toEndpoints:
-      - matchLabels:
-          "k8s:io.kubernetes.pod.namespace": ctrl-prompt
+      - toEndpoints:
+          - matchLabels:
+              "k8s:io.kubernetes.pod.namespace": ctrl-prompt
 ---
 apiVersion: "cilium.io/v2"
 kind: CiliumNetworkPolicy
@@ -40,20 +40,20 @@ specs:
   - endpointSelector:
       matchLabels: {}
     ingress:
-    - fromEndpoints:
-      - matchLabels:
-          "k8s:io.kubernetes.pod.namespace": fw-prompt
+      - fromEndpoints:
+          - matchLabels:
+              "k8s:io.kubernetes.pod.namespace": fw-prompt
     egress:
-    - toEndpoints:
-      - matchLabels:
-          "k8s:io.kubernetes.pod.namespace": fw-model
+      - toEndpoints:
+          - matchLabels:
+              "k8s:io.kubernetes.pod.namespace": fw-model
   - endpointSelector:
       matchLabels: {}
     egress:
-    - toEndpoints:
-      - matchLabels:
-          "k8s:io.kubernetes.pod.namespace": kube-system
-          "k8s:k8s-app": kube-dns
+      - toEndpoints:
+          - matchLabels:
+              "k8s:io.kubernetes.pod.namespace": kube-system
+              "k8s:k8s-app": kube-dns
 ---
 apiVersion: "cilium.io/v2"
 kind: CiliumNetworkPolicy
@@ -64,19 +64,19 @@ specs:
   - endpointSelector:
       matchLabels: {}
     egress:
-    - toEndpoints:
-      - matchLabels:
-          "k8s:io.kubernetes.pod.namespace": kube-system
-          "k8s:k8s-app": kube-dns
+      - toEndpoints:
+          - matchLabels:
+              "k8s:io.kubernetes.pod.namespace": kube-system
+              "k8s:k8s-app": kube-dns
   - endpointSelector:
       matchLabels: {}
     ingress:
-    - fromEndpoints:
-      - matchLabels:
-          "k8s:io.kubernetes.pod.namespace": app-chatbot
+      - fromEndpoints:
+          - matchLabels:
+              "k8s:io.kubernetes.pod.namespace": app-chatbot
     egress:
-    - toEntities:
-      - all
+      - toEntities:
+          - all
 ---
 apiVersion: "cilium.io/v2"
 kind: CiliumNetworkPolicy
@@ -87,22 +87,22 @@ specs:
   - endpointSelector:
       matchLabels: {}
     egress:
-    - toEndpoints:
-      - matchLabels:
-          "k8s:io.kubernetes.pod.namespace": kube-system
-          "k8s:k8s-app": kube-dns
+      - toEndpoints:
+          - matchLabels:
+              "k8s:io.kubernetes.pod.namespace": kube-system
+              "k8s:k8s-app": kube-dns
   - endpointSelector:
       matchLabels: {}
     ingress:
-    - fromEndpoints:
-      - matchLabels:
-          "k8s:io.kubernetes.pod.namespace": fw-prompt
+      - fromEndpoints:
+          - matchLabels:
+              "k8s:io.kubernetes.pod.namespace": fw-prompt
     egress:
-    - toEndpoints:
-      - matchLabels:
-          "k8s:io.kubernetes.pod.namespace": fw-prompt
+      - toEndpoints:
+          - matchLabels:
+              "k8s:io.kubernetes.pod.namespace": fw-prompt
   - endpointSelector:
       matchLabels: {}
     egress:
-    - toFQDNs:
-        - matchName: "huggingface.co"
+      - toFQDNs:
+          - matchName: "huggingface.co"
