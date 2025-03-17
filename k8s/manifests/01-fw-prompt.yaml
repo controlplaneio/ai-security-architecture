@@ -6,9 +6,11 @@ metadata:
 spec:
   ports:
     - port: 80
+      nodePort: 30080
       targetPort: 8080
   selector:
     app: envoy-proxy
+  type: NodePort
 ---
 apiVersion: apps/v1
 kind: Deployment
