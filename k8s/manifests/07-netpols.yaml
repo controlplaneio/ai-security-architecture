@@ -101,3 +101,8 @@ specs:
     - toEndpoints:
       - matchLabels:
           "k8s:io.kubernetes.pod.namespace": fw-prompt
+  - endpointSelector:
+      matchLabels: {}
+    egress:
+    - toFQDNs:
+        - matchName: "huggingface.co"
