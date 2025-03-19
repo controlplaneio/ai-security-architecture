@@ -1,8 +1,7 @@
 # Stage 1: Build
-FROM debian:bookworm as builder
+FROM debian:bookworm AS builder
 
-RUN \
-  DEBIAN_FRONTEND=noninteractive \
+RUN DEBIAN_FRONTEND=noninteractive \
     apt update && apt install --assume-yes --no-install-recommends \
       curl \
       ca-certificates \

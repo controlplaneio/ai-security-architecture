@@ -6,9 +6,11 @@ metadata:
 spec:
   ports:
     - port: 80
+      nodePort: 30080
       targetPort: 8080
   selector:
     app: envoy-proxy
+  type: NodePort
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -25,10 +27,10 @@ spec:
       labels:
         app: envoy-proxy
     spec:
-#      securityContext:
-#        runAsNonRoot: true
-#        seccompProfile:
-#          type: RuntimeDefault
+      #      securityContext:
+      #        runAsNonRoot: true
+      #        seccompProfile:
+      #          type: RuntimeDefault
       containers:
         - name: envoy
           image: envoyproxy/envoy:debug-v1.30.0
@@ -39,15 +41,15 @@ spec:
               mountPath: /etc/envoy
           args:
             - "--config-path /etc/envoy/envoy.yaml"
-#          securityContext:
-#            runAsUser: 1001
-#            allowPrivilegeEscalation: false
-#            capabilities:
-#              drop: ["ALL"]
-#              add: ["NET_BIND_SERVICE"]
-#            seccompProfile:
-#              type: RuntimeDefault
-#            readOnlyRootFilesystem: true
+      #          securityContext:
+      #            runAsUser: 1001
+      #            allowPrivilegeEscalation: false
+      #            capabilities:
+      #              drop: ["ALL"]
+      #              add: ["NET_BIND_SERVICE"]
+      #            seccompProfile:
+      #              type: RuntimeDefault
+      #            readOnlyRootFilesystem: true
       volumes:
         - name: envoy-config
           configMap:

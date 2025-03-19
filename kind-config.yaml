@@ -1,10 +1,15 @@
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
-- role: control-plane
-- role: worker
-  extraMounts:
-    - hostPath: ./data
-      containerPath: /tmp/data
+  - role: control-plane
+  - role: worker
+    extraMounts:
+      - hostPath: ./data
+        containerPath: /tmp/data
+    extraPortMappings:
+      - containerPort: 30080
+        hostPort: 30080
+        listenAddress: "127.0.0.1"
+        protocol: tcp
 networking:
   disableDefaultCNI: true
